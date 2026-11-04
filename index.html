@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Vocabulaire">
+<meta name="theme-color" content="#f3f4f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#13161c" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Carnet de vocabulaire arabe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Literata:opsz,wght@7..72,400;7..72,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+html{color-scheme:light;-webkit-text-size-adjust:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+
+/* Layout: one narrow column — a header with progress, a flash-card study zone, then the word list grouped by chapter, like the book's red tables. */
+:root{
+  --bg:#f3f4f6; --surface:#ffffff; --ink:#1d2330; --muted:#5d6675; --line:#d9dde4;
+  --accent:#c8231e; --accent-soft:#fbe3e1; --good:#23805a; --good-soft:#dcf1e7; --warn:#a86a07; --warn-soft:#fbefd6;
+  --f-ar:"Amiri","Noto Naskh Arabic","Traditional Arabic",serif;
+  --f-body:"Literata",Georgia,serif;
+  --f-ui:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13161c; --surface:#1c2029; --ink:#e8eaee; --muted:#9aa2b0; --line:#2e3441;
+  --accent:#ef5b52; --accent-soft:#3a1d1d; --good:#4cc08b; --good-soft:#163227; --warn:#e3a43d; --warn-soft:#352812; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13161c; --surface:#1c2029; --ink:#e8eaee; --muted:#9aa2b0; --line:#2e3441;
+  --accent:#ef5b52; --accent-soft:#3a1d1d; --good:#4cc08b; --good-soft:#163227; --warn:#e3a43d; --warn-soft:#352812; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:15px;line-height:1.5}
+.wrap{max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px;display:flex;flex-direction:column;gap:22px}
+header{display:flex;flex-direction:column;gap:10px}
+h1{font-family:var(--f-body);font-weight:600;font-size:1.55rem;margin:0;text-wrap:balance;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+h1 .ar{font-family:var(--f-ar);font-size:1.6rem;color:var(--accent);font-weight:700}
+.stats{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:.85rem;font-variant-numeric:tabular-nums}
+.stats b{color:var(--ink);font-weight:600}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;display:flex}
+.bar span{display:block;height:100%}
+.sync{font-size:.75rem;color:var(--muted)}
+.controls{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);min-width:78px}
+.chip{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:5px 12px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip:focus-visible,.btn:focus-visible,.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.study{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;min-height:230px;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;cursor:pointer;position:relative}
+.card .meta{position:absolute;top:12px;left:14px;right:14px;display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);letter-spacing:.04em}
+.card .q-ar{font-family:var(--f-ar);font-size:2.6rem;line-height:1.5;direction:rtl}
+.card .q-fr{font-family:var(--f-body);font-size:1.6rem;text-wrap:balance}
+.card .ans{border-top:1px dashed var(--line);padding-top:10px;width:100%}
+.card .a-ar{font-family:var(--f-ar);font-size:2.2rem;direction:rtl;line-height:1.5}
+.card .a-fr{font-family:var(--f-body);font-size:1.3rem}
+.card .note{font-size:.8rem;color:var(--muted)}
+.tap{font-size:.8rem;color:var(--muted)}
+.grade{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.btn{font:inherit;font-weight:500;border-radius:10px;padding:12px 8px;border:1px solid transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.btn small{font-weight:400;font-size:.72rem;opacity:.8}
+.b-bad{background:var(--accent-soft);color:var(--accent)}
+.b-mid{background:var(--warn-soft);color:var(--warn)}
+.b-ok{background:var(--good-soft);color:var(--good)}
+.b-main{background:var(--ink);color:var(--bg);padding:12px 20px;flex-direction:row;justify-content:center}
+.done{text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.done p{margin:0;color:var(--muted)}
+.list h2{font-family:var(--f-body);font-size:1.15rem;margin:0 0 8px;display:flex;justify-content:space-between;align-items:baseline}
+.list h2 span{font-family:var(--f-ui);font-size:.8rem;color:var(--muted);font-weight:400}
+details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px 14px}
+details+details{margin-top:8px}
+summary{cursor:pointer;padding:10px 0;font-weight:500;display:flex;justify-content:space-between;gap:8px;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary .n{color:var(--muted);font-weight:400;font-size:.85rem;font-variant-numeric:tabular-nums}
+table{width:100%;border-collapse:collapse;margin-bottom:8px}
+td{padding:7px 4px;border-top:1px solid var(--line);vertical-align:middle}
+td.ar{font-family:var(--f-ar);font-size:1.35rem;direction:rtl;text-align:right;white-space:nowrap}
+td.fr{font-family:var(--f-body);font-size:.95rem}
+td.lv{width:58px;text-align:center}
+.dots{display:inline-flex;gap:3px}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--good)}
+.hard{color:var(--accent);font-size:.75rem;margin-left:4px}
+.backup{margin-top:-8px}
+label.link{display:inline}
+.foot{font-size:.8rem;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.link{background:none;border:none;color:var(--muted);text-decoration:underline;font:inherit;cursor:pointer;padding:0}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px}
+.modes button{font:inherit;font-weight:500;border:none;background:none;color:var(--muted);padding:9px 4px;border-radius:9px;cursor:pointer}
+.modes button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.modes button:focus-visible,.opt:focus-visible,.write input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.panel{cursor:default}
+.prog{display:flex;flex-direction:column;gap:6px;font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opt{font:inherit;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--ink);cursor:pointer;display:flex;gap:10px;align-items:center;min-height:54px;min-width:0}
+.opt kbd{font-family:var(--f-ui);font-size:.7rem;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 5px;flex:none}
+.opt .o-fr{font-family:var(--f-body);flex:1;min-width:0}
+.opt .o-ar{font-family:var(--f-ar);font-size:1.5rem;direction:rtl;flex:1;text-align:right;line-height:1.5}
+.opt.right{border-color:var(--good);background:var(--good-soft)}
+.opt.wrong{border-color:var(--accent);background:var(--accent-soft)}
+.opt:disabled{cursor:default;color:var(--ink)}
+.opt:disabled:not(.right):not(.wrong){opacity:.55}
+.write{display:flex;gap:8px;width:100%}
+.write input.in-ar{font-family:var(--f-ar);font-size:1.4rem;padding-block:6px}
+.write input{flex:1;min-width:0;font-family:var(--f-body);font-size:1.05rem;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+.tf-prop{font-family:var(--f-body);font-size:1.3rem;text-wrap:balance}
+.fb{border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.fb.ok{background:var(--good-soft);color:var(--good);font-weight:500}
+.fb.ko{background:var(--accent-soft)}
+.fb .lead{color:var(--accent);font-weight:600}
+.fb .ans-ar{font-family:var(--f-ar);font-size:1.5rem;direction:rtl;text-align:right}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions .btn{flex:1}
+.b-ghost{background:var(--surface);border-color:var(--line);color:var(--ink);flex-direction:row;justify-content:center}
+.setup{display:flex;flex-direction:column;gap:14px;align-items:stretch;text-align:left;justify-content:flex-start}
+.setup h3,.result h3{font-family:var(--f-body);font-size:1.2rem;margin:0}
+.result{align-items:stretch;justify-content:flex-start;text-align:left;gap:14px}
+.score{font-family:var(--f-body);font-size:2.6rem;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.score small{font-size:1rem;color:var(--muted);font-weight:400;margin-left:8px}
+.errs td{font-size:.9rem}
+.errs .mine{color:var(--accent);font-size:.8rem}
+.okline{color:var(--good);font-weight:500}
+@media (max-width:480px){.opts{grid-template-columns:1fr}}
+@media (prefers-reduced-motion: no-preference){.card{transition:transform .12s ease}.card:active{transform:scale(.99)}}
+@media (max-width:420px){.card .q-ar{font-size:2.2rem}.lbl{min-width:0;width:100%}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1><span class="ar">مُفْرَدات</span> Carnet de vocabulaire</h1>
+    <div class="stats" id="stats"></div>
+    <div class="bar" id="bar" aria-hidden="true"></div>
+    <div class="sync" id="sync">Progression enregistrée sur cet iPhone · fonctionne hors connexion</div>
+  </header>
+
+  <nav class="modes" role="tablist" aria-label="Mode">
+    <button role="tab" id="m-cards" data-mode="cards">Cartes</button>
+    <button role="tab" id="m-learn" data-mode="learn">Apprendre</button>
+    <button role="tab" id="m-test" data-mode="test">Tester</button>
+  </nav>
+
+  <section class="controls" aria-label="Réglages">
+    <div class="row"><span class="lbl">Chapitres</span><div class="row" id="chapters"></div></div>
+    <div class="row" id="dirRow"><span class="lbl">Sens</span>
+      <button class="chip" id="d-ar" data-dir="ar">عربي → français</button>
+      <button class="chip" id="d-fr" data-dir="fr">français → عربي</button>
+      <button class="chip" id="d-mix" data-dir="mix">Les deux</button>
+    </div>
+    <div class="row"><span class="lbl">Voyelles</span>
+      <button class="chip" id="harakat" aria-pressed="true">Harakat affichées</button>
+    </div>
+  </section>
+
+  <section class="study" id="study" aria-live="polite"></section>
+
+  <section class="list">
+    <h2>Les mots <span id="listsum"></span></h2>
+    <div id="list"></div>
+  </section>
+
+  <div class="foot">
+    <span>Les mots marqués ✕ sont ceux que tu avais cochés dans le livre : ils passent en premier.</span>
+    <span id="reset"><button class="link" id="resetBtn">Remettre la progression à zéro</button></span>
+  </div>
+  <div class="foot backup">
+    <span>Sauvegarde : <button class="link" id="exportBtn">Exporter ma progression</button> · <label class="link" for="importFile">Importer une sauvegarde</label><input type="file" id="importFile" accept=".json,application/json" hidden></span>
+    <span id="backupMsg" aria-live="polite"></span>
+  </div>
+</div>
+
+<script>
+// [chapitre, arabe, français, coché ✕ dans le livre]
+const WORDS = [
+[1,"اِسْمٌ / أَسْماءٌ","nom(s)"],[1,"باعَ / يَبيعُ","vendre"],[1,"جِدًّا","très, beaucoup"],[1,"سَجَدَ / يَسْجُدُ","se prosterner"],
+[1,"عَبَدَ / يَعْبُدُ","adorer"],[1,"قَبْلَ","avant"],[1,"كانَ / يَكونُ","être"],[1,"كَثيرٌ","nombreux"],[1,"لِـ (لَ)","pour"],
+[1,"مَنْ","qui"],[1,"هٰذا / هٰذِهِ","ce, cet / cette"],[1,"يَوْمٌ / أَيّامٌ","jour"],[1,"آزَرُ","Aazar"],[1,"بائِعٌ","vendeur"],
+[1,"بَيْتٌ / بُيوتٌ","maison(s), demeure(s)"],[1,"رَجُلٌ / رِجالٌ","homme(s)"],[1,"صَنَمٌ / أَصْنامٌ","idole(s)"],[1,"في","dans"],
+[1,"قَرْيَةٌ / قُرًى","village(s)"],[1,"كَبيرٌ","grand"],[1,"كَسَرَ / يَكْسِرُ","casser"],[1,"مَشْهورٌ","connu, célèbre"],[1,"ناسٌ","gens"],[1,"وَ","et, alors que"],
+[2,"إِبْراهيمُ","Ibrahim"],[2,"أَنَّ","que"],[2,"جَلَسَ / يَجْلِسُ","s'asseoir (ici : se poser)"],[2,"دَفَعَ / يَدْفَعُ","repousser",1],
+[2,"رَأى / يَرى","voir"],[2,"سَأَلَ / يَسْأَلُ","interroger"],[2,"ضَرَّ / يَضُرُّ","causer du tort",1],[2,"عَرَفَ / يَعْرِفُ","savoir"],
+[2,"فَ","et"],[2,"قالَ / يَقولُ","dire"],[2,"لِماذا","pourquoi"],[2,"مَنَعَ / يَمْنَعُ","interdire",1],[2,"نَفَعَ / يَنْفَعُ","être utile",1],
+[2,"أَكَلَ / يَأْكُلُ","manger"],[2,"تَكَلَّمَ / يَتَكَلَّمُ","parler"],[2,"حِجارَةٌ - حَجَرٌ / أَحْجارٌ","pierre(s)",1],[2,"ذُبابَةٌ - ذُبابٌ","mouche",1],
+[2,"رَشيدٌ","bien-guidé",1],[2,"سَمِعَ / يَسْمَعُ","écouter"],[2,"طَعامٌ","nourriture"],[2,"عَلى","sur"],[2,"فَأْرٌ / فِئْرانٌ","souris",1],
+[2,"لا","ne… pas (négation)"],[2,"لَهُ","à lui"],[2,"نَفْسٌ / نُفوسٌ - أَنْفُسٌ","esprit(s), âme(s) (ici : en lui-même)"],[2,"وَلَدٌ / أَوْلادٌ","enfant(s)"],
+[3,"أَبٌ / آباءٌ","père(s), ancêtres"],[3,"إِنَّ","certes"],[3,"حينَئِذٍ","alors, à ce moment-là",1],[3,"شَرابٌ","boisson"],
+[3,"غَضِبَ / يَغْضَبُ","se mettre en colère",1],[3,"قَوْمٌ / أَقْوامٌ","peuple(s), gens"],[3,"نَصَحَ / يَنْصَحُ","conseiller"],[3,"ها","son, sa, ses (suffixe)"],
+[3,"وَضَعَ / يَضَعُ","mettre, poser",1],[3,"يا","ô (apostrophe)"],[3,"إِذا","lorsque"],[3,"أَنا","je, moi"],[3,"ذَهَبَ / يَذْهَبُ","aller, s'en aller"],
+[3,"شَرِبَ / يَشْرَبُ","boire"],[3,"فَهِمَ / يَفْهَمُ","comprendre"],[3,"لِأَيِّ شَيْءٍ","pourquoi"],[3,"نَصيحَةٌ / نَصائِحُ","conseil(s)"],
+[3,"والِدٌ (ة)","père (mère)"],[3,"ي","mon, ma, mes (suffixe)"]
+].map((w,i)=>({id:w[0]+"-"+w[2],ch:w[0],ar:w[1],fr:w[2],hard:!!w[3],i}));
+
+const CHAPTERS=[...new Set(WORDS.map(w=>w.ch))];
+const INTERVALS=[0,1,3,7,16,35,80]; // jours, par boîte de Leitner
+const MAXBOX=INTERVALS.length-1, NEW_PER_SESSION=15, DAY=86400000;
+const KEY="vocab-arabe-v1";
+
+let state={cards:{},prefs:{chapters:CHAPTERS.slice(),dir:"ar",harakat:true,mode:"cards"},updatedAt:0};
+let db=null, docRef=null, saveTimer=null;
+let queue=[], current=null, revealed=false, sessionDone=0, confirmReset=false;
+
+function stripH(s){return s.replace(/[ً-ٰٟـ]/g,"")}
+function arText(s){return state.prefs.harakat?s:stripH(s)}
+function today0(){const d=new Date();d.setHours(0,0,0,0);return d.getTime()}
+function cardKey(w,dir){return w.id+":"+dir}
+function getCard(k){return state.cards[k]||{b:0,due:0,seen:false}}
+function wordLevel(w){const a=getCard(cardKey(w,"ar")),f=getCard(cardKey(w,"fr"));return Math.min(a.b,f.b)}
+
+function load(){
+  try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.cards)state=merge(s)}catch(e){}
+}
+function merge(s){return {cards:s.cards||{},prefs:Object.assign({},state.prefs,s.prefs||{}),updatedAt:s.updatedAt||0}}
+function save(){
+  state.updatedAt=Date.now();
+  try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}
+  if(docRef){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{
+    docRef.set({json:JSON.stringify(state),updatedAt:state.updatedAt})
+      .then(()=>setSync("Progression synchronisée sur ton compte"))
+      .catch(()=>setSync("Synchronisation impossible pour l'instant, gardée sur cet appareil"));
+  },800)}
+}
+function setSync(t){document.getElementById("sync").textContent=t}
+
+async function connect(){
+  try{
+    if(!window.claude||!window.claude.use)return;
+    const [d,u]=await Promise.all([claude.use("db"),claude.use("user")]);
+    if(!d||!u)return;
+    const id=await u.id(); if(!id)return;
+    db=d; docRef=db.collection("data/users/"+id).doc("progress");
+    const timer=setTimeout(()=>setSync("Synchronisation lente, progression gardée sur cet appareil"),10000);
+    const snap=await docRef.get(); clearTimeout(timer);
+    const data=snap.exists?snap.data():null;
+    if(data&&data.json){const remote=JSON.parse(data.json);
+      if((remote.updatedAt||0)>state.updatedAt){state=merge(remote);try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}buildQueue();renderAll()}
+      else if(state.updatedAt>(remote.updatedAt||0))save();
+    } else if(state.updatedAt) save();
+    setSync("Progression synchronisée sur ton compte");
+  }catch(e){setSync("Progression enregistrée sur cet appareil")}
+}
+
+function activeWords(){return WORDS.filter(w=>state.prefs.chapters.includes(w.ch))}
+function dirs(){return state.prefs.dir==="mix"?["ar","fr"]:[state.prefs.dir]}
+
+function buildQueue(){
+  const now=Date.now(), due=[], fresh=[];
+  for(const w of activeWords())for(const d of dirs()){
+    const c=getCard(cardKey(w,d));
+    if(!c.seen)fresh.push({w,d});else if(c.due<=now)due.push({w,d,due:c.due});
+  }
+  due.sort((a,b)=>a.due-b.due);
+  fresh.sort((a,b)=>(b.w.hard-a.w.hard)||(a.w.ch-b.w.ch)||(a.w.i-b.w.i));
+  queue=shuffleSoft(due).concat(fresh.slice(0,NEW_PER_SESSION));
+  sessionDone=0; next();
+}
+function shuffleSoft(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function next(){current=queue.shift()||null;revealed=false;renderStudy()}
+
+function grade(g){
+  if(!current)return;
+  const k=cardKey(current.w,current.d), c=getCard(k);
+  if(g==="bad"){c.b=1;c.due=Date.now();queue.splice(Math.min(3,queue.length),0,current)}
+  else if(g==="mid"){c.b=Math.max(1,c.b);c.due=today0()+DAY}
+  else {c.b=Math.min(MAXBOX,c.b+1);c.due=today0()+INTERVALS[c.b]*DAY}
+  c.seen=true; state.cards[k]=c; sessionDone++;
+  save(); next(); renderHeader(); renderList();
+}
+
+function renderHeader(){
+  const ws=WORDS, n=ws.length;
+  let known=0,learning=0;
+  for(const w of ws){const l=wordLevel(w);if(l>=3)known++;else if(getCard(cardKey(w,"ar")).seen||getCard(cardKey(w,"fr")).seen)learning++}
+  const now=Date.now();let dueCount=0;
+  for(const w of activeWords())for(const d of dirs()){const c=getCard(cardKey(w,d));if(c.seen&&c.due<=now)dueCount++}
+  document.getElementById("stats").innerHTML=`<span><b>${n}</b> mots</span><span><b>${known}</b> bien ancrés</span><span><b>${learning}</b> en cours</span><span><b>${dueCount}</b> à revoir aujourd'hui</span>`;
+  document.getElementById("bar").innerHTML=`<span style="width:${known/n*100}%;background:var(--good)"></span><span style="width:${learning/n*100}%;background:var(--warn)"></span>`;
+}
+
+function renderControls(){
+  const box=document.getElementById("chapters");
+  box.innerHTML="";
+  for(const ch of CHAPTERS){
+    const b=document.createElement("button");b.className="chip";b.id="ch-"+ch;
+    b.textContent="Chap. "+ch;b.setAttribute("aria-pressed",state.prefs.chapters.includes(ch));
+    b.onclick=()=>{const s=new Set(state.prefs.chapters);s.has(ch)?s.delete(ch):s.add(ch);if(!s.size)return;state.prefs.chapters=[...s].sort();learn=null;test=null;save();buildQueue();renderAll()};
+    box.appendChild(b);
+  }
+  for(const id of ["d-ar","d-fr","d-mix"]){const b=document.getElementById(id);b.setAttribute("aria-pressed",b.dataset.dir===state.prefs.dir)}
+  const mode=state.prefs.mode||"cards";
+  for(const b of document.querySelectorAll("[data-mode]"))b.setAttribute("aria-selected",b.dataset.mode===mode);
+  const h=document.getElementById("harakat");h.setAttribute("aria-pressed",state.prefs.harakat);h.textContent=state.prefs.harakat?"Harakat affichées":"Harakat masquées";
+}
+
+function esc(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+/* ---------- Questions partagées (Apprendre / Tester) ---------- */
+let learn=null, test=null, testCfg={n:10,types:{mcq:true,tf:true,write:true}}, advanceTimer=null;
+
+function pickOptions(w,n=4){
+  const base=activeWords().length>=n?activeWords():WORDS;
+  const others=shuffleSoft(base.filter(x=>x!==w&&x.fr!==w.fr&&x.ar!==w.ar).slice()).slice(0,n-1);
+  return shuffleSoft([w,...others]);
+}
+function makeQ(w,type){
+  const q={w,type};
+  if(type==="mcq-ar"||type==="mcq-fr")q.options=pickOptions(w);
+  if(type==="tf"){q.prop=Math.random()<.5?w:pickOptions(w,2).find(x=>x!==w)}
+  return q;
+}
+function normFr(s){return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")
+  .replace(/\((s|e|es)\)/g,"").replace(/\([^)]*\)/g," ").replace(/[’']/g," ").replace(/[^a-z ]/g," ")
+  .replace(/\b(le|la|les|l|un|une|des|se|s|d|de)\b/g," ").replace(/\s+/g," ").trim()}
+function accepts(w,input){
+  const a=normFr(input); if(!a)return false;
+  const sing=x=>x.split(" ").map(t=>t.replace(/(s|x)$/,"")).join(" ");
+  const variants=[w.fr,...w.fr.replace(/\([^)]*\)/g,"").split(/[,\/]/)].map(normFr).filter(Boolean);
+  return variants.some(v=>v===a||sing(v)===sing(a));
+}
+function normAr(s){return stripH(s).replace(/[أإآٱ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي").replace(/ؤ/g,"و").replace(/ئ/g,"ي").replace(/[^ء-ي]/g,"")}
+function acceptsAr(w,input){
+  const a=normAr(input); if(!a)return false;
+  const clean=w.ar.replace(/\([^)]*\)/g," ");
+  const variants=[clean,...clean.split(/[\/\-]/)].map(normAr).filter(x=>x.length);
+  return variants.some(v=>v===a);
+}
+function isRight(q,v){return q.type==="tf"?v===(q.prop===q.w):q.type==="write"?accepts(q.w,v):q.type==="write-ar"?acceptsAr(q.w,v):v===q.w}
+
+function qPrompt(q){
+  const ar=`<div class="q-ar" lang="ar">${esc(arText(q.w.ar))}</div>`;
+  if(q.type==="mcq-fr")return `<div class="q-fr">${esc(q.w.fr)}</div><div class="tap">Choisis le mot arabe</div>`;
+  if(q.type==="tf")return `${ar}<div class="tf-prop">= ${esc(q.prop.fr)} ?</div>`;
+  if(q.type==="write")return `${ar}<div class="tap">Écris la traduction en français</div>`;
+  if(q.type==="write-ar")return `<div class="q-fr">${esc(q.w.fr)}</div><div class="tap">Écris le mot en arabe (sans les voyelles si tu veux)</div>`;
+  return `${ar}<div class="tap">Choisis la traduction</div>`;
+}
+function qBody(q,res){
+  if(q.type==="write"||q.type==="write-ar"){
+    const arIn=q.type==="write-ar";
+    return `<form class="write" id="wform"><input id="winput" class="${arIn?"in-ar":""}" ${arIn?'dir="rtl" lang="ar"':""} autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${arIn?"اكتب هنا":"Ta réponse"}" aria-label="Ta réponse" ${res?"disabled":""} value="${res?esc(res.value):""}"><button class="btn b-main" ${res?"disabled":""}>Valider</button></form>`;
+  }
+  const vals=q.type==="tf"?[true,false]:q.options;
+  const truth=q.type==="tf"?(q.prop===q.w):q.w;
+  return `<div class="opts">${vals.map((v,i)=>{
+    let cls="";if(res){if(v===truth)cls="right";else if(v===res.value)cls="wrong"}
+    const label=q.type==="tf"?`<span class="o-fr">${v?"Vrai":"Faux"}</span>`:q.type==="mcq-fr"?`<span class="o-ar" lang="ar">${esc(arText(v.ar))}</span>`:`<span class="o-fr">${esc(v.fr)}</span>`;
+    return `<button class="opt ${cls}" id="opt-${i}" ${res?"disabled":""}><kbd>${i+1}</kbd>${label}</button>`}).join("")}</div>`;
+}
+function bindQ(q,onAnswer){
+  if(q.type==="write"||q.type==="write-ar"){
+    const f=document.getElementById("wform"),inp=document.getElementById("winput");
+    if(!f||inp.disabled)return; setTimeout(()=>inp.focus(),0);
+    f.onsubmit=e=>{e.preventDefault();const v=inp.value.trim();if(v)onAnswer(v)};return;
+  }
+  const vals=q.type==="tf"?[true,false]:q.options;
+  vals.forEach((v,i)=>{const b=document.getElementById("opt-"+i);if(b&&!b.disabled)b.onclick=()=>onAnswer(v)});
+}
+function correctAnswerHtml(q){
+  return `<div><b>${esc(q.w.fr)}</b></div><div class="ans-ar" lang="ar">${esc(arText(q.w.ar))}</div>`;
+}
+
+/* ---------- Apprendre : 3 étapes par mot, par manches de 7 ---------- */
+const STAGE_DEF={"mcq-ar":"Reconnaître","mcq-fr":"Retrouver l'arabe","write":"Écrire en français","write-ar":"Écrire en arabe"};
+function stagesFor(dir){return dir==="ar"?["mcq-ar","write"]:dir==="fr"?["mcq-fr","write-ar"]:["mcq-ar","mcq-fr","write","write-ar"]}
+function startLearn(){
+  const ws=shuffleSoft(activeWords().slice()).sort((a,b)=>b.hard-a.hard);
+  learn={stages:stagesFor(state.prefs.dir),items:ws.map(w=>({w,stage:0})),roundNo:0,roundQueue:[],round:[],q:null,res:null,between:false,finished:false};
+  newRound();
+}
+function newRound(){
+  const pending=learn.items.filter(it=>it.stage<learn.stages.length);
+  if(!pending.length){learn.finished=true;learn.q=null;return}
+  learn.round=pending.slice(0,7);learn.roundNo++;learn.roundQueue=shuffleSoft(learn.round.slice());learn.between=false;
+  nextLearn(false);
+}
+function nextLearn(render=true){
+  clearTimeout(advanceTimer);
+  const it=learn.roundQueue.shift();
+  if(!it){learn.between=true;learn.q=null}
+  else{learn.q=makeQ(it.w,learn.stages[it.stage]);learn.q.item=it;learn.res=null}
+  if(render)renderStudy();
+}
+function learnAnswer(v){
+  const ok=isRight(learn.q,v), it=learn.q.item;
+  learn.res={value:v,ok};
+  if(ok){it.stage++;renderStudy();advanceTimer=setTimeout(()=>{if(state.prefs.mode==="learn"&&learn&&learn.res&&learn.res.ok)nextLearn()},800)}
+  else{learn.roundQueue.push(it);renderStudy()}
+}
+function renderLearn(el){
+  if(!learn)startLearn();
+  const L=learn.stages.length, n=learn.items.length, pts=learn.items.reduce((s,it)=>s+it.stage,0), mastered=learn.items.filter(it=>it.stage>=L).length;
+  const prog=`<div class="prog"><span>${mastered} / ${n} mots maîtrisés · manche ${Math.max(1,learn.roundNo)}</span><div class="bar"><span style="width:${pts/(L*n)*100}%;background:var(--good)"></span></div></div>`;
+  if(learn.finished){
+    el.innerHTML=`${prog}<div class="card panel done"><div class="q-fr">Tu as appris les ${n} mots sélectionnés.</div><p>Passe en mode Tester pour vérifier que tout est bien en place, ou recommence pour consolider.</p><button class="btn b-main" id="cont">Recommencer</button></div>`;
+    document.getElementById("cont").onclick=()=>{learn=null;renderStudy()};return;
+  }
+  if(learn.between){
+    el.innerHTML=`${prog}<div class="card panel result"><h3>Manche ${learn.roundNo} terminée</h3>
+      <table class="errs"><tbody>${learn.round.map(it=>`<tr><td class="lv"><span class="dots">${learn.stages.map((_,i)=>`<i class="${it.stage>i?"on":""}"></i>`).join("")}</span></td><td class="fr">${esc(it.w.fr)}</td><td class="ar" lang="ar">${esc(arText(it.w.ar))}</td></tr>`).join("")}</tbody></table>
+      <button class="btn b-main" id="cont">Manche suivante</button></div>`;
+    document.getElementById("cont").onclick=()=>{newRound();renderStudy()};return;
+  }
+  const q=learn.q, si=q.item.stage-(learn.res&&learn.res.ok?1:0);
+  let fb="";
+  if(learn.res){
+    fb=learn.res.ok?`<div class="fb ok">Bien vu.</div>`
+      :`<div class="fb ko"><span class="lead">Pas tout à fait. La bonne réponse :</span>${correctAnswerHtml(q)}
+        <div class="actions">${q.type.startsWith("write")?`<button class="btn b-ghost" id="override">J'avais bon</button>`:""}<button class="btn b-main" id="cont">Continuer</button></div></div>`;
+  }
+  el.innerHTML=`${prog}<div class="card panel"><div class="meta"><span>Chap. ${q.w.ch}${q.w.hard?' <span class="hard">✕</span>':""}</span><span>Étape ${si+1}/${L} · ${STAGE_DEF[q.type]}</span></div>${qPrompt(q)}</div>${qBody(q,learn.res)}${fb}`;
+  bindQ(q,learnAnswer);
+  const c=document.getElementById("cont"); if(c){c.onclick=()=>nextLearn();if(!q.type.startsWith("write"))c.focus()}
+  const o=document.getElementById("override"); if(o)o.onclick=()=>{learn.roundQueue.pop();q.item.stage++;nextLearn()};
+}
+
+/* ---------- Tester : questions mélangées, score à la fin ---------- */
+function startTest(only){
+  let ws=only?only.slice():shuffleSoft(activeWords().slice());
+  if(!only&&testCfg.n!=="all")ws=ws.slice(0,testCfg.n);
+  const types=Object.keys(testCfg.types).filter(k=>testCfg.types[k]);
+  const qs=ws.map((w,i)=>{let t=types[i%types.length];
+    const toAr=state.prefs.dir==="fr"||(state.prefs.dir==="mix"&&Math.random()<.5);
+    if(t==="mcq")t=toAr?"mcq-fr":"mcq-ar";
+    if(t==="write")t=toAr?"write-ar":"write";
+    return makeQ(w,t)});
+  test={qs:shuffleSoft(qs),idx:0,res:[],done:false,added:false};
+}
+function testAnswer(v){
+  const q=test.qs[test.idx];
+  test.res.push({q,value:v,ok:isRight(q,v)});
+  test.idx++; if(test.idx>=test.qs.length)test.done=true;
+  renderStudy();
+}
+function renderTest(el){
+  if(!test){
+    const nAct=activeWords().length;
+    const nOpts=[10,20,"all"].filter(x=>x==="all"||x<nAct);
+    el.innerHTML=`<div class="card panel setup"><h3>Préparer un test</h3>
+      <div class="row"><span class="lbl">Questions</span>${nOpts.map(x=>`<button class="chip" id="tn-${x}" aria-pressed="${testCfg.n===x}">${x==="all"?`Tous (${nAct})`:x}</button>`).join("")}</div>
+      <div class="row"><span class="lbl">Types</span>
+        <button class="chip" id="tt-mcq" aria-pressed="${testCfg.types.mcq}">Choix multiple</button>
+        <button class="chip" id="tt-tf" aria-pressed="${testCfg.types.tf}">Vrai ou faux</button>
+        <button class="chip" id="tt-write" aria-pressed="${testCfg.types.write}">Écrit</button></div>
+      <div class="tap">Le choix multiple et l'écrit suivent le sens choisi plus haut. Tu verras tes résultats à la fin.</div>
+      <button class="btn b-main" id="cont">Commencer le test</button></div>`;
+    if(!nOpts.includes(testCfg.n))testCfg.n="all";
+    nOpts.forEach(x=>document.getElementById("tn-"+x).onclick=()=>{testCfg.n=x;renderStudy()});
+    ["mcq","tf","write"].forEach(t=>document.getElementById("tt-"+t).onclick=()=>{testCfg.types[t]=!testCfg.types[t];if(!Object.values(testCfg.types).some(Boolean))testCfg.types[t]=true;renderStudy()});
+    document.getElementById("cont").onclick=()=>{startTest();renderStudy()};
+    return;
+  }
+  if(test.done){
+    const ok=test.res.filter(r=>r.ok).length, n=test.res.length, errs=test.res.filter(r=>!r.ok);
+    const mine=r=>r.q.type==="tf"?(r.value?"Vrai":"Faux")+` (« ${esc(r.q.prop.fr)} »)`:r.q.type==="mcq-fr"?`<span lang="ar">${esc(arText(r.value.ar))}</span>`:r.q.type==="mcq-ar"?esc(r.value.fr):esc(r.value);
+    el.innerHTML=`<div class="card panel result">
+      <div class="score">${ok} / ${n}<small>${Math.round(ok/n*100)} %</small></div>
+      ${errs.length?`<h3>À retravailler</h3><table class="errs"><tbody>${test.res.map((r,i)=>r.ok?"":`<tr><td class="fr">${esc(r.q.w.fr)}<div class="mine">Ta réponse : ${mine(r)}</div>${r.q.type.startsWith("write")?`<button class="link" id="ov-${i}">Compter juste</button>`:""}</td><td class="ar" lang="ar">${esc(arText(r.q.w.ar))}</td></tr>`).join("")}</tbody></table>`:`<div class="okline">Aucune erreur. Tout est en place.</div>`}
+      <div class="actions">
+        ${errs.length?`<button class="btn b-ghost" id="addRev" ${test.added?"disabled":""}>${test.added?"Ajoutés aux cartes":"Ajouter aux cartes à revoir"}</button><button class="btn b-ghost" id="redoErr">Refaire les erreurs</button>`:""}
+        <button class="btn b-main" id="cont">Nouveau test</button></div></div>`;
+    test.res.forEach((r,i)=>{const b=document.getElementById("ov-"+i);if(b)b.onclick=()=>{r.ok=true;renderStudy()}});
+    const a=document.getElementById("addRev");
+    if(a&&!test.added)a.onclick=()=>{for(const r of errs)for(const d of ["ar","fr"]){const k=cardKey(r.q.w,d),c=getCard(k);c.b=1;c.due=Date.now();c.seen=true;state.cards[k]=c}
+      test.added=true;save();renderHeader();renderList();renderStudy()};
+    const re=document.getElementById("redoErr"); if(re)re.onclick=()=>{startTest(errs.map(r=>r.q.w));renderStudy()};
+    document.getElementById("cont").onclick=()=>{test=null;renderStudy()};
+    return;
+  }
+  const q=test.qs[test.idx], n=test.qs.length;
+  el.innerHTML=`<div class="prog"><span>Question ${test.idx+1} / ${n}</span><div class="bar"><span style="width:${test.idx/n*100}%;background:var(--ink)"></span></div></div>
+    <div class="card panel"><div class="meta"><span>Chap. ${q.w.ch}</span><button class="link" id="quit">Arrêter</button></div>${qPrompt(q)}</div>${qBody(q,null)}`;
+  bindQ(q,testAnswer);
+  document.getElementById("quit").onclick=()=>{test=null;renderStudy()};
+}
+
+function renderStudy(){
+  const el=document.getElementById("study"), mode=state.prefs.mode||"cards";
+  if(mode==="learn")return renderLearn(el);
+  if(mode==="test")return renderTest(el);
+  renderCards(el);
+}
+
+function renderCards(el){
+  if(!current){
+    const msg=sessionDone?`Séance terminée : ${sessionDone} carte${sessionDone>1?"s":""} revue${sessionDone>1?"s":""}.`:"Rien à revoir pour l'instant dans ces chapitres.";
+    el.innerHTML=`<div class="card done" tabindex="-1"><div class="q-fr">${msg}</div><p>Les mots reviendront quand il sera temps de les revoir. Tu peux aussi relancer une séance libre.</p><button class="btn b-main" id="free">Réviser quand même 15 cartes</button></div>`;
+    document.getElementById("free").onclick=()=>{const pool=[];for(const w of activeWords())for(const d of dirs())pool.push({w,d});queue=shuffleSoft(pool).slice(0,15);sessionDone=0;next()};
+    return;
+  }
+  const {w,d}=current, c=getCard(cardKey(w,d));
+  const isNew=!c.seen;
+  const q=d==="ar"?`<div class="q-ar" lang="ar">${esc(arText(w.ar))}</div>`:`<div class="q-fr">${esc(w.fr)}</div>`;
+  const a=d==="ar"?`<div class="a-fr">${esc(w.fr)}</div>`:`<div class="a-ar" lang="ar">${esc(arText(w.ar))}</div>`;
+  let note="";
+  if(w.ar.includes(" / ")){const second=stripH(w.ar.split(" / ")[1]).trim();
+    const kind=second.startsWith("ي")?"passé / présent":w.fr.startsWith("ce,")?"masculin / féminin":"singulier / pluriel";
+    note=`<div class="note">${kind}</div>`}
+  el.innerHTML=`
+    <div class="card" id="card" tabindex="0" role="button" aria-label="Retourner la carte">
+      <div class="meta"><span>Chap. ${w.ch}${w.hard?' <span class="hard">✕</span>':""}</span><span>${isNew?"Nouveau":"Révision"} · reste ${queue.length}</span></div>
+      ${q}
+      ${revealed?`<div class="ans">${a}${note}</div>`:`<div class="tap">${d==="fr"?"Dis le mot en arabe, puis touche la carte":"Touche la carte pour voir la réponse"}</div>`}
+    </div>
+    ${revealed?`<div class="grade">
+      <button class="btn b-bad" id="g-bad">Raté<small>revient vite</small></button>
+      <button class="btn b-mid" id="g-mid">Hésitant<small>demain</small></button>
+      <button class="btn b-ok" id="g-ok">Je savais<small>dans ${INTERVALS[Math.min(MAXBOX,c.b+1)]} j</small></button>
+    </div>`:`<button class="btn b-main" id="show">Voir la réponse</button>`}`;
+  const flip=()=>{if(!revealed){revealed=true;renderStudy()}};
+  document.getElementById("card").onclick=flip;
+  if(revealed){["bad","mid","ok"].forEach(g=>document.getElementById("g-"+g).onclick=()=>grade(g))}
+  else document.getElementById("show").onclick=flip;
+}
+
+function renderList(){
+  const el=document.getElementById("list"), open=new Set([...el.querySelectorAll("details[open]")].map(d=>d.dataset.ch));
+  el.innerHTML="";
+  let total=0;
+  for(const ch of CHAPTERS){
+    const ws=WORDS.filter(w=>w.ch===ch), k=ws.filter(w=>wordLevel(w)>=3).length; total+=k;
+    const det=document.createElement("details");det.dataset.ch=ch;if(open.has(String(ch)))det.open=true;
+    det.innerHTML=`<summary><span>Chapitre ${ch}</span><span class="n">${k} / ${ws.length} ancrés</span></summary>
+      <table><tbody>${ws.map(w=>{const l=wordLevel(w);return `<tr><td class="lv"><span class="dots" title="Niveau ${l} sur ${MAXBOX}">${[1,2,3,4,5].map(i=>`<i class="${l>=i?"on":""}"></i>`).join("")}</span></td><td class="fr">${esc(w.fr)}${w.hard?'<span class="hard">✕</span>':""}</td><td class="ar" lang="ar">${esc(arText(w.ar))}</td></tr>`}).join("")}</tbody></table>`;
+    el.appendChild(det);
+  }
+  document.getElementById("listsum").textContent=`${total} / ${WORDS.length} bien ancrés`;
+}
+
+function renderAll(){renderControls();renderHeader();renderStudy();renderList()}
+
+document.querySelectorAll("[data-dir]").forEach(b=>b.onclick=()=>{state.prefs.dir=b.dataset.dir;learn=null;if(test&&!test.done&&test.idx===0)test=null;save();buildQueue();renderAll()});
+document.getElementById("harakat").onclick=()=>{state.prefs.harakat=!state.prefs.harakat;save();renderAll()};
+document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{clearTimeout(advanceTimer);state.prefs.mode=b.dataset.mode;save();renderAll()});
+document.addEventListener("keydown",e=>{
+  if(e.target.closest&&e.target.closest("input,textarea"))return;
+  if((state.prefs.mode||"cards")!=="cards"){
+    if(/^[1-4]$/.test(e.key)){const b=document.getElementById("opt-"+(+e.key-1));if(b&&!b.disabled){e.preventDefault();b.click()}}
+    return;
+  }
+  if(e.target.closest&&e.target.closest("button:not(#card)"))return;
+  if(!current)return;
+  if(!revealed&&(e.key===" "||e.key==="Enter")){e.preventDefault();revealed=true;renderStudy()}
+  else if(revealed&&["1","2","3"].includes(e.key))grade({"1":"bad","2":"mid","3":"ok"}[e.key]);
+});
+function renderReset(){
+  const r=document.getElementById("reset");
+  if(!confirmReset){r.innerHTML='<button class="link" id="resetBtn">Remettre la progression à zéro</button>';document.getElementById("resetBtn").onclick=()=>{confirmReset=true;renderReset()};return}
+  r.innerHTML='<span class="confirm">Tout effacer ? <button class="link" id="rYes">Oui, effacer</button><button class="link" id="rNo">Annuler</button></span>';
+  document.getElementById("rYes").onclick=()=>{state.cards={};confirmReset=false;save();buildQueue();renderAll();renderReset()};
+  document.getElementById("rNo").onclick=()=>{confirmReset=false;renderReset()};
+}
+
+function setupBackup(){
+  const msg=t=>document.getElementById("backupMsg").textContent=t;
+  document.getElementById("exportBtn").onclick=async()=>{
+    const data=JSON.stringify(state), name="progression-vocab-"+new Date().toISOString().slice(0,10)+".json";
+    const file=new File([data],name,{type:"application/json"});
+    try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:"Progression vocabulaire"});msg("Sauvegarde prête.");return}}catch(e){if(e&&e.name==="AbortError")return}
+    const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=name;document.body.appendChild(a);a.click();a.remove();msg("Sauvegarde téléchargée.");
+  };
+  document.getElementById("importFile").onchange=e=>{
+    const f=e.target.files[0];if(!f)return;const r=new FileReader();
+    r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||!d.cards)throw 0;state=merge(d);save();learn=null;test=null;buildQueue();renderAll();msg("Progression importée.")}catch(err){msg("Ce fichier n'est pas une sauvegarde du carnet.")}};
+    r.readAsText(f);e.target.value="";
+  };
+}
+load(); buildQueue(); renderAll(); renderReset(); setupBackup();
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+</script>
+
+</body>
+</html>

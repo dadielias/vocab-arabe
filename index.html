@@ -196,15 +196,71 @@ const WORDS = [
 [3,"غَضِبَ / يَغْضَبُ","se mettre en colère",1],[3,"قَوْمٌ / أَقْوامٌ","peuple(s), gens"],[3,"نَصَحَ / يَنْصَحُ","conseiller"],[3,"ها","son, sa, ses (suffixe)"],
 [3,"وَضَعَ / يَضَعُ","mettre, poser",1],[3,"يا","ô (apostrophe)"],[3,"إِذا","lorsque"],[3,"أَنا","je, moi"],[3,"ذَهَبَ / يَذْهَبُ","aller, s'en aller"],
 [3,"شَرِبَ / يَشْرَبُ","boire"],[3,"فَهِمَ / يَفْهَمُ","comprendre"],[3,"لِأَيِّ شَيْءٍ","pourquoi"],[3,"نَصيحَةٌ / نَصائِحُ","conseil(s)"],
-[3,"والِدٌ (ة)","père (mère)"],[3,"ي","mon, ma, mes (suffixe)"]
-].map((w,i)=>({id:w[0]+"-"+w[2],ch:w[0],ar:w[1],fr:w[2],hard:!!w[3],i}));
+[3,"والِدٌ (ة)","père (mère)"],[3,"ي","mon, ma, mes (suffixe)"],
+[4,"أَ","est-ce que… ?"],[4,"أَكْبَرُ","plus grand"],[4,"بِـ","avec (préfixe)"],[4,"تَرَكَ / يَتْرُكُ","laisser, abandonner"],
+[4,"خَرَجَ / يَخْرُجُ","sortir"],[4,"سَكَتَ / يَسْكُتُ","se taire"],[4,"طِفْلٌ / أَطْفالٌ","enfant(s)"],[4,"عُنُقٌ / أَعْناقٌ","cou(s)"],
+[4,"فَأْسٌ","hache"],[4,"لِأَنَّ","parce que"],[4,"ما لَكُمْ","qu'avez-vous ?"],[4,"نا","nous, notre, nos (suffixe)"],
+[4,"أَخَذَ / يَأْخُذُ","prendre"],[4,"إِلى","vers"],[4,"بَقِيَ / يَبْقى","rester"],[4,"جاءَ / يَجيءُ","arriver, venir"],
+[4,"سَقيمٌ","malade",1],[4,"ضَرَبَ / يَضْرِبُ","frapper"],[4,"عَلَّقَ / يُعَلِّقُ","accrocher"],[4,"عيدٌ / أَعْيادٌ","fête(s)"],
+[4,"فَرِحَ / يَفْرَحُ","être content"],[4,"ما","ne… pas (négation)"],[4,"مَعَ","avec"],[4,"نَطَقَ / يَنْطِقُ","parler, prononcer"],
+[5,"أَرادَ / يُريدُ","vouloir"],[5,"أَنْ","que"],[5,"أَيْضاً","aussi"],[5,"تَأَسَّفَ / يَتَأَسَّفُ","s'affliger, être désolé"],
+[5,"تَعَجَّبَ / يَتَعَجَّبُ","s'exclamer"],[5,"دَخَلَ / يَدْخُلُ","entrer"],[5,"ذَكَرَ / يَذْكُرُ","mentionner, rappeler"],
+[5,"شَيْءٌ / أَشْياءُ","chose (avec une négation : rien)"],[5,"عَلِمَ / يَعْلَمُ","savoir, connaître"],[5,"فَعَلَ / يَفْعَلُ","faire"],
+[5,"قيلَ / يُقالُ","être dit (passif de dire)"],[5,"لٰكِنْ - لٰكِنَّ","mais"],[5,"إِلٰهٌ / آلِهَةٌ","divinité(s), dieu(x)"],
+[5,"أَنْتَ","toi, tu"],[5,"بَلْ","mais (marque l'opposition)"],[5,"تَحَرَّكَ / يَتَحَرَّكُ","bouger"],[5,"خَجِلَ / يَخْجَلُ","rougir, avoir honte"],
+[5,"دَهِشَ / يَدْهَشُ","être stupéfait"],[5,"رَجَعَ / يَرْجِعُ","être de retour"],[5,"عَقَلَ / يَعْقِلُ","réfléchir"],
+[5,"فَتًى / فِتْيانٌ - فِتْيَةٌ","jeune(s) garçon(s), valet(s), domestique(s)"],[5,"قَدَرَ / يَقْدِرُ","pouvoir"],[5,"كَيْفَ","comment"],[5,"مَشى / يَمْشي","marcher"],
+[6,"اِجْتَمَعَ / يَجْتَمِعُ","se réunir"],[6,"أَهانَ / يُهينُ","insulter, humilier"],[6,"بارِدٌ (ة)","froid(e)"],[6,"تَحَيَّرَ / يَتَحَيَّرُ","être perplexe"],
+[6,"جَوابٌ / أَجْوِبَةٌ","réponse(s)"],[6,"سالِمٌ / سالِمونَ","sain"],[6,"عِقابٌ","châtiment, punition"],[6,"ماذا","que (interrogatif)"],
+[6,"نارٌ / نيرانٌ","feu(x)"],[6,"هٰكَذا","ainsi"],[6,"أَلْقى / يُلْقي","jeter"],[6,"أَوْقَدَ / يوقِدُ","allumer un feu"],[6,"بَرْدٌ","fraîcheur, froid"],
+[6,"جَزاءٌ","rétribution"],[6,"حَرَّقَ / يُحَرِّقُ","brûler"],[6,"سَلامٌ","paix, salut"],[6,"ما","quel(le) (interrogatif)"],[6,"مَسْرورٌ","heureux"],[6,"نَصَرَ / يَنْصُرُ","secourir, aider"],
+[7,"باقٍ (الباقي)","éternel, qui reste"],[7,"ذاتَ لَيْلَةٍ","une nuit"],[7,"شَمْسٌ","soleil"],[7,"ضَعيفٌ / ضُعَفاءُ","faible(s)"],[7,"غابَ / يَغيبُ","disparaître"],
+[7,"غَيْمٌ","nuage"],[7,"قَوِيٌّ / أَقْوِياءُ","fort(s)"],[7,"لَمّا","lorsque"],[7,"لَيْسَ","n'être pas"],[7,"ماتَ / يَموتُ","mourir"],[7,"حَيٌّ","vivant"],
+[7,"رَبٌّ / أَرْبابٌ","maître(s), seigneur(s)"],[7,"صُبْحٌ","matin"],[7,"طَلَعَ / يَطْلُعُ","se lever, monter"],[7,"غَلَبَ / يَغْلِبُ","vaincre, dominer"],
+[7,"قَمَرٌ","lune"],[7,"كَوْكَبٌ / كَواكِبُ","astre(s)"],[7,"اللهُ","Allah"],[7,"لَيْلٌ (ة) / لَيالٍ","nuit(s)"],
+[8,"أَمَرَ / يَأْمُرُ","ordonner, commander"],[8,"خَليلٌ / أَخِلّاءُ","ami(s) intime(s)"],[8,"عالَمٌ / عالَمونَ","monde(s)"],[8,"مِنْ","de"],
+[8,"هَدى / يَهْدي","guider"],[8,"جَعَلَ / يَجْعَلُ","faire, rendre"],[8,"دَعا / يَدْعو","prêcher, appeler"],[8,"عِبادَةٌ","adoration"],[8,"نَبِيٌّ / نَبِيّونَ - أَنْبِياءُ","prophète(s)"],
+[9,"أَحَدٌ","quelqu'un (avec une négation : personne)"],[9,"إِذْ","lorsque"],[9,"أَماتَ / يُميتُ","faire mourir"],[9,"خَلَقَ / يَخْلُقُ","créer"],
+[9,"الَّذي","celui qui"],[9,"شَفى / يَشْفي","guérir"],[9,"كَذٰلِكَ","ainsi, aussi"],[9,"هُوَ","lui, il"],[9,"وَجَدَ / يَجِدُ","trouver"],
+[9,"أَحْيى / يُحْيي","donner la vie"],[9,"أَطْعَمَ / يُطْعِمُ","nourrir"],[9,"ثُمَّ","puis, ensuite"],[9,"دَعْوَةٌ","prêche, sermon, appel, invocation, invitation"],
+[9,"سَقى / يَسْقي","abreuver"],[9,"عَدُوٌّ / أَعْداءُ","ennemi(s)"],[9,"مَرِضَ / يَمْرَضُ","être malade, tomber malade"],[9,"هِيَ","elle"],
+[10,"أَتى / يَأْتي بِـ","amener, apporter"],[10,"أَمامَ","face à, devant"],[10,"خافَ / يَخافُ","craindre"],[10,"ظالِمٌ","injuste"],[10,"كُلٌّ","tout, tous"],
+[10,"مَشْرِقٌ","Orient (à l'est)"],[10,"مَغْرِبٌ","Occident (à l'ouest)"],[10,"آخَرُ / آخَرونَ","autre(s) (masculin)"],[10,"بَليدٌ","stupide"],
+[10,"طَلَبَ / يَطْلُبُ","demander"],[10,"قَتَلَ / يَقْتُلُ","tuer"],[10,"مَدينَةٌ / مُدُنٌ","ville(s)"],[10,"مُشْرِكٌ","associateur"],[10,"مَلِكٌ / مُلوكٌ","roi(s)"],
+[11,"بَلَدٌ / بِلادٌ","pays, contrée(s), cité(s)"],[11,"رَحْمانُ (الـ)","(le) miséricordieux"],[11,"لِمَ","pourquoi"],[11,"هُنا","là, ici"],
+[11,"حَليمٌ","doux"],[11,"شَيْطانٌ / شَياطينُ","Satan (le diable), les démons"],[11,"ما","ce que"],
+[12,"إِذَنْ - إِذاً","donc"],[12,"أَضاعَ / يُضيعُ","perdre, égarer"],[12,"بِئْرٌ / آبارٌ","puits"],[12,"حَيَوانٌ / حَيَواناتٌ","animal(aux)"],
+[12,"سافَرَ / يُسافِرُ","voyager"],[12,"شَجَرٌ (ة) / أَشْجارٌ","arbre(s)"],[12,"قَصَدَ / يَقْصِدُ","se diriger vers, avoir l'intention de"],[12,"مَكَّةُ","la Mecque"],
+[12,"نَعَمْ","oui"],[12,"هاجَرُ","Hajar"],[12,"وَدَّعَ / يُوَدِّعُ","faire ses adieux"],[12,"إِسْماعيلُ","Ismaïl"],[12,"أَيْنَ","où"],
+[12,"بَشَرٌ","homme, être humain"],[12,"زَوْجٌ / أَزْواجٌ","épouse(s)"],[12,"سَيِّدٌ / سادَةٌ","maître(s) (marque de respect)"],[12,"عُشْبٌ","pâturage"],
+[12,"ماءٌ / مِياهٌ","eau(x)"],[12,"نَزَلَ / يَنْزِلُ","s'arrêter, descendre"],[12,"نَهْرٌ / أَنْهارٌ","cours d'eau"],[12,"هَلْ","est-ce que… ?"],[12,"وَصَلَ / يَصِلُ","arriver"],
+[13,"أَرْضٌ / أَراضٍ","terre(s)"],[13,"بارَكَ / يُبارِكُ","bénir"],[13,"جَرى / يَجْري","courir, couler (eau)"],[13,"زَمْزَمُ","Zamzam"],[13,"عَطِشَ / يَعْطَشُ","avoir soif"],
+[13,"أُمٌّ / أُمَّهاتٌ","mère(s)"],[13,"الَّتي","celle qui, dont"],[13,"حَجٌّ","pèlerinage"],[13,"الصَّفا والْمَرْوَةُ","as-Safa et al-Marwa (deux monticules proches de la Kaaba)"],
+[13,"مَرَّةٌ / مَرّاتٌ - مِرارٌ","fois"],
+[14,"اِبْنٌ / أَبْناءٌ - بَنونَ","fils"],[14,"أَرْسَلَ / يُرْسِلُ","envoyer"],[14,"اِضْطَجَعَ / يَضْطَجِعُ","se coucher"],[14,"اِمْتِحانٌ / اِمْتِحاناتٌ","examen(s), test(s)"],
+[14,"بَعْدَ","après"],[14,"جِبْريلُ - جِبْرائيلُ","l'archange Gabriel"],[14,"حُلْقومٌ","gorge"],[14,"ذَبَحَ / يَذْبَحُ","égorger"],[14,"سَـ","particule du futur"],
+[14,"سَلَّمَ / يُسَلِّمُ عَلى","saluer"],[14,"صابِرٌ / صابِرونَ","patient(s)"],[14,"صَغيرٌ / صِغارٌ","petit(s)"],[14,"صَلّى / يُصَلّي","prier"],
+[14,"عَمَلٌ / أَعْمالٌ","action(s)"],[14,"لَعِبَ / يَلْعَبُ","jouer"],[14,"مُدَّةٌ","moment"],[14,"مَنامٌ","sommeil"],[14,"نَجَحَ / يَنْجَحُ","réussir"],
+[14,"أَحَبَّ / يُحِبُّ","aimer"],[14,"الأَضْحى","fête des sacrifices"],[14,"أَكْثَرُ","plus"],[14,"أَوْ","ou"],[14,"بَلَغَ / يَبْلُغُ","atteindre"],
+[14,"جَنَّةٌ / جَنّاتٌ","paradis, jardin(s)"],[14,"ذَبْحٌ","égorgement"],[14,"رُؤْيا","rêve, vision"],[14,"سِكّينٌ","couteau"],[14,"شاءَ / يَشاءُ","vouloir"],
+[14,"صادِقٌ","véridique"],[14,"صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ","bénédiction et paix sur lui"],[14,"عادَ / يَعودُ","revenir"],[14,"كَبْشٌ / أَكْباشٌ","mouton(s), bélier(s)"],
+[14,"لَقِيَ / يَلْقى","retrouver"],[14,"مُسْلِمٌ","musulman, soumis"],[14,"مِنًى","Mina"],[14,"نَظَرَ / يَنْظُرُ","observer"],
+[15,"بَنى / يَبْني","construire"],[15,"تَوَجَّهَ / يَتَوَجَّهُ","faire face"],[15,"ذٰلِكَ","ceci, cela"],[15,"صَلاةٌ / صَلَواتٌ","prière(s)"],
+[15,"عَليمٌ (الـ)","celui qui sait tout"],[15,"كَعْبَةُ (الـ)","(la) Kaaba"],[15,"نَقَلَ / يَنْقُلُ","transporter"],[15,"تَقَبَّلَ / يَتَقَبَّلُ","accepter"],
+[15,"جَبَلٌ / جِبالٌ","montagne(s)"],[15,"سَميعٌ (الـ)","celui qui entend tout"],[15,"طافَ / يَطوفُ","tourner autour"],[15,"عِنْدَ","auprès, chez"],
+[15,"نَحْنُ","nous"],[15,"يَدٌ / أَيْدٍ","main(s)"],
+[16,"اِثْنا عَشَرَ","douze"],[16,"أُخْرى / أُخَرُ","autre(s) (féminin)"],[16,"أَقْصى","lointain"],[16,"حَوْلَ","autour"],[16,"سَكَنَ / يَسْكُنُ","habiter"],
+[16,"عَجيبٌ (ة)","extraordinaire, étrange"],[16,"قِصَّةٌ / قِصَصٌ","histoire(s), conte(s)"],[16,"مَسْجِدٌ / مَساجِدُ","mosquée(s)"],[16,"يَعْقوبُ","Yacoub"],
+[16,"أَخٌ / إِخْوَةٌ - إِخْوانٌ","frère(s)"],[16,"إِسْحاقُ","Ishaq"],[16,"إِلَيْكَ","voici pour toi"],[16,"سارَةُ","Sarah"],[16,"شامُ (الـ)","(la) Grande Syrie"],
+[16,"قُرْآنٌ","Coran"],[16,"كَما","comme"],[16,"مَقْدِسٌ - مُقَدَّسٌ","sacré"],[16,"يوسُفُ","Youssouf"]
+].map((w,i,all)=>{let id=w[0]+"-"+w[2];if(all.findIndex(x=>x[0]===w[0]&&x[2]===w[2])!==i)id+="-"+w[1];return {id,ch:w[0],ar:w[1],fr:w[2],hard:!!w[3],i}});
 
 const CHAPTERS=[...new Set(WORDS.map(w=>w.ch))];
 const INTERVALS=[0,1,3,7,16,35,80]; // jours, par boîte de Leitner
 const MAXBOX=INTERVALS.length-1, NEW_PER_SESSION=15, DAY=86400000;
 const KEY="vocab-arabe-v1";
 
-let state={cards:{},prefs:{chapters:CHAPTERS.slice(),dir:"ar",harakat:true,mode:"cards"},updatedAt:0};
+let state={cards:{},prefs:{chapters:CHAPTERS.slice(),dir:"ar",harakat:true,mode:"cards",known:CHAPTERS.slice()},updatedAt:0};
 let db=null, docRef=null, saveTimer=null;
 let queue=[], current=null, revealed=false, sessionDone=0, confirmReset=false;
 
@@ -218,7 +274,12 @@ function wordLevel(w){const a=getCard(cardKey(w,"ar")),f=getCard(cardKey(w,"fr")
 function load(){
   try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.cards)state=merge(s)}catch(e){}
 }
-function merge(s){return {cards:s.cards||{},prefs:Object.assign({},state.prefs,s.prefs||{}),updatedAt:s.updatedAt||0}}
+function merge(s){
+  const prefs=Object.assign({},state.prefs,s.prefs||{});
+  const known=prefs.known||[1,2,3];
+  for(const ch of CHAPTERS)if(!known.includes(ch)&&!prefs.chapters.includes(ch))prefs.chapters.push(ch);
+  prefs.chapters.sort((a,b)=>a-b);prefs.known=CHAPTERS.slice();
+  return {cards:s.cards||{},prefs,updatedAt:s.updatedAt||0}}
 function save(){
   state.updatedAt=Date.now();
   try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}
@@ -288,10 +349,15 @@ function renderHeader(){
 function renderControls(){
   const box=document.getElementById("chapters");
   box.innerHTML="";
+  const all=document.createElement("button");all.className="chip";all.id="ch-all";
+  const allOn=state.prefs.chapters.length===CHAPTERS.length;
+  all.textContent=allOn?"Seulement le dernier":"Tous";all.setAttribute("aria-pressed","false");
+  all.onclick=()=>{state.prefs.chapters=allOn?[CHAPTERS[CHAPTERS.length-1]]:CHAPTERS.slice();learn=null;test=null;save();buildQueue();renderAll()};
+  box.appendChild(all);
   for(const ch of CHAPTERS){
     const b=document.createElement("button");b.className="chip";b.id="ch-"+ch;
-    b.textContent="Chap. "+ch;b.setAttribute("aria-pressed",state.prefs.chapters.includes(ch));
-    b.onclick=()=>{const s=new Set(state.prefs.chapters);s.has(ch)?s.delete(ch):s.add(ch);if(!s.size)return;state.prefs.chapters=[...s].sort();learn=null;test=null;save();buildQueue();renderAll()};
+    b.textContent=ch;b.title="Chapitre "+ch;b.setAttribute("aria-pressed",state.prefs.chapters.includes(ch));
+    b.onclick=()=>{const s=new Set(state.prefs.chapters);s.has(ch)?s.delete(ch):s.add(ch);if(!s.size)return;state.prefs.chapters=[...s].sort((a,b)=>a-b);learn=null;test=null;save();buildQueue();renderAll()};
     box.appendChild(b);
   }
   for(const id of ["d-ar","d-fr","d-mix"]){const b=document.getElementById(id);b.setAttribute("aria-pressed",b.dataset.dir===state.prefs.dir)}

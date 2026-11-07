@@ -427,10 +427,22 @@ function buildQueue(){
     const c=getCard(cardKey(w,d));
     if(!c.seen)fresh.push({w,d});else if(c.due<=now)due.push({w,d,due:c.due});
   }
-  due.sort((a,b)=>a.due-b.due);
-  fresh.sort((a,b)=>(b.w.hard-a.w.hard)||(a.w.ch-b.w.ch)||(a.w.i-b.w.i));
-  queue=shuffleSoft(due).concat(fresh.slice(0,NEW_PER_SESSION));
+  // nouveaux mots : tous, dans l'ordre du livre ; en « les deux sens », le 2e sens d'un mot revient plusieurs cartes plus tard
+  const order=(a,b)=>(a.w.ch-b.w.ch)||(a.w.i-b.w.i);
+  const byWord=new Map();for(const it of fresh.sort(order)){if(!byWord.has(it.w))byWord.set(it.w,[]);byWord.get(it.w).push(it)}
+  const firsts=[],seconds=[];
+  for(const its of byWord.values()){if(its.length>1&&Math.random()<.5)its.reverse();firsts.push(its[0]);if(its[1])seconds.push(its[1])}
+  const GAP=6,merged=[];
+  firsts.forEach((it,i)=>{merged.push(it);if(i>=GAP&&seconds.length&&seconds[0].w===firsts[i-GAP].w)merged.push(seconds.shift())});
+  queue=spread(shuffleSoft(due)).concat(merged,seconds);
   sessionDone=0; next();
+}
+function spread(a){ // évite deux cartes du même mot trop proches
+  for(let i=1;i<a.length;i++){
+    const near=k=>a.slice(Math.max(0,k-3),k).some(x=>x.w===a[k].w);
+    if(near(i)){for(let j=i+1;j<a.length;j++){[a[i],a[j]]=[a[j],a[i]];if(!near(i))break;[a[i],a[j]]=[a[j],a[i]]}}
+  }
+  return a;
 }
 function shuffleSoft(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function next(){current=queue.shift()||null;revealed=false;renderStudy()}
@@ -438,7 +450,7 @@ function next(){current=queue.shift()||null;revealed=false;renderStudy()}
 function grade(g){
   if(!current)return;
   const k=cardKey(current.w,current.d), c=getCard(k);
-  if(g==="bad"){c.b=1;c.due=Date.now();c.ok=false;queue.splice(Math.min(3,queue.length),0,current)}
+  if(g==="bad"){c.b=1;c.due=Date.now();c.ok=false;let pos=Math.min(4,queue.length);while(pos<queue.length&&queue.slice(Math.max(0,pos-3),pos+1).some(x=>x.w===current.w))pos++;queue.splice(pos,0,current)}
   else {c.b=Math.min(MAXBOX,c.b+1);c.due=today0()+INTERVALS[c.b]*DAY;c.ok=true}
   c.seen=true; state.cards[k]=c; sessionDone++; markActivity();
   save(); next(); renderHeader(); renderList();
@@ -484,7 +496,7 @@ function renderHeader(){
       ${dueCount?`<button class="today" id="todayBtn"><span>${dueCount} mot${dueCount>1?"s":""} à revoir aujourd'hui</span><span>Réviser ›</span></button>`:`<div class="today"><span>Rien à revoir aujourd'hui, tu es à jour</span></div>`}
     </div>`;
   const studied=WORDS.filter(isStudied).length, unseen=n-studied;
-  document.getElementById("sub-cards").textContent=dueCount?`Tous les mots · ${dueCount} à revoir`:unseen?`Tous les mots · ${Math.min(unseen,NEW_PER_SESSION)} nouveaux`:"Tous les mots";
+  document.getElementById("sub-cards").textContent=dueCount?`Tous les mots · ${dueCount} à revoir`:unseen?`Tous les mots · ${unseen} nouveaux`:"Tous les mots";
   const tb=document.getElementById("todayBtn");if(tb)tb.onclick=()=>go("cards");
   document.getElementById("sub-test").textContent=studied?`Quiz sur les ${studied} mots déjà vus`:"Commence par un chapitre";
   const grid=document.getElementById("chgrid");grid.innerHTML="";
@@ -529,7 +541,7 @@ function renderChapter(){
   const fresh=ws.filter(w=>!isStudied(w)).length;
   document.getElementById("chTitle").textContent="Chapitre "+ch;
   document.getElementById("chHero").innerHTML=`<span class="arn" lang="ar">${arNum(ch)}</span><div class="info"><b>${kn} / ${ws.length} mots acquis</b><div class="bar"><span style="width:${kn/ws.length*100}%;background:var(--sage-bright)"></span></div><span>${ws.length-kn} pas encore acquis</span></div>`;
-  document.getElementById("chsub-cards").textContent=due?`${due} à revoir`:fresh?`${Math.min(fresh,NEW_PER_SESSION)} nouveaux mots`:"Tout est à jour";
+  document.getElementById("chsub-cards").textContent=due?`${due} à revoir`:fresh?`${fresh} nouveaux mots`:"Tout est à jour";
   document.getElementById("chsub-learn").textContent=learn&&!learn.finished&&learn.key==="chapter"+ch?"Reprendre la séance":"Par manches de 10 mots";
   document.getElementById("chsub-test").textContent="Quiz sur ce chapitre";
   for(const m of ["cards","learn","test"])document.getElementById("chGo-"+m).onclick=()=>go(m,{type:"chapter",ch});
@@ -777,8 +789,8 @@ function renderStudy(){
 function renderCards(el){
   if(!current){
     const msg=sessionDone?`Séance terminée : ${sessionDone} carte${sessionDone>1?"s":""} revue${sessionDone>1?"s":""}.`:"Rien à revoir pour l'instant.";
-    el.innerHTML=`<div class="card done" tabindex="-1"><div class="q-fr">${msg}</div><p>Les mots reviendront quand il sera temps de les revoir. Tu peux aussi relancer une séance libre.</p><button class="btn b-main" id="free">Réviser quand même 15 cartes</button></div>`;
-    document.getElementById("free").onclick=()=>{const pool=[];for(const w of activeWords())for(const d of dirs())pool.push({w,d});queue=shuffleSoft(pool).slice(0,15);sessionDone=0;next()};
+    el.innerHTML=`<div class="card done" tabindex="-1"><div class="q-fr">${msg}</div><p>Les mots reviendront quand il sera temps de les revoir. Tu peux aussi relancer une séance libre.</p><button class="btn b-main" id="free">Tout réviser quand même</button></div>`;
+    document.getElementById("free").onclick=()=>{const pool=[];for(const w of activeWords())for(const d of dirs())pool.push({w,d});queue=spread(shuffleSoft(pool));sessionDone=0;next()};
     return;
   }
   const {w,d}=current, c=getCard(cardKey(w,d));

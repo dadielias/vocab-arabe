@@ -1,5 +1,5 @@
 // Change ce numéro à chaque mise à jour du carnet
-const VERSION = "vocab-v3";
+const VERSION = "vocab-v4";
 const CORE = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", e => {

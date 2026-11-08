@@ -70,6 +70,23 @@ button{font:inherit;color:inherit}
 .tile b{font-size:1.1rem;font-weight:800;line-height:1.1}
 .tile small{font-size:.78rem;font-weight:600;opacity:.85;line-height:1.3}
 .tiles-2{grid-template-columns:1fr 1fr}
+.home-row{grid-template-columns:1.25fr 1fr;align-items:stretch}
+.search-col{display:flex;flex-direction:column;gap:8px;min-width:0}
+.search{min-height:64px;display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:20px;box-shadow:var(--shadow);padding:0 14px;color:var(--muted);min-width:0}
+.search input{flex:1;min-width:0;border:none;background:none;font:inherit;font-weight:700;font-size:1rem;color:var(--ink);padding:16px 0;outline:none}
+.search:focus-within{box-shadow:0 0 0 3px var(--saffron-bright)}
+.results{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:4px 14px;display:flex;flex-direction:column}
+.res{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:9px 0;border-top:1.5px solid var(--line);background:none;border-left:none;border-right:none;border-bottom:none;text-align:left;cursor:pointer;width:100%}
+.res:first-child{border-top:none}
+.res .fr{font-weight:700;min-width:0}
+.res .fr small{display:block;color:var(--muted);font-weight:700;font-size:.75rem}
+.res .ar{font-family:var(--f-ar);font-size:1.35rem;direction:rtl;text-align:right}
+.results .none{color:var(--muted);font-weight:600;padding:12px 0}
+.curve{grid-column:1/-1;display:flex;flex-direction:column;gap:4px;min-width:0}
+.curve .ttl{display:flex;justify-content:space-between;font-size:.78rem;font-weight:800;color:var(--muted)}
+.curve svg{width:100%;height:auto;display:block;overflow:visible}
+.curve .empty{font-size:.82rem;color:var(--muted);font-weight:600;background:var(--bg);border-radius:12px;padding:10px 12px}
+@media (max-width:400px){.home-row{grid-template-columns:1fr}}
 .tiles-2 .tile{min-height:120px;flex-direction:row;align-items:center;gap:12px}
 .tiles-2 .tile>span{display:flex;flex-direction:column;gap:2px;min-width:0}
 .t-cards{background:var(--saffron-soft);color:var(--saffron)}
@@ -209,8 +226,14 @@ label.link{display:inline}
   <section class="view" id="v-home">
     <div class="overview" id="overview"></div>
 
-    <nav class="tiles tiles-2" aria-label="Choisir un mode">
-      <button class="tile t-cards" data-go="cards"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><rect x="9" y="6" width="20" height="26" rx="4" fill="currentColor" opacity=".25" transform="rotate(-10 19 19)"/><rect x="12" y="9" width="20" height="26" rx="4" fill="currentColor"/><path d="M17 20h10M17 25h6" stroke="#fffaf4" stroke-width="2.4" stroke-linecap="round"/></svg><span><b>Cartes</b><small id="sub-cards"></small></span></button>
+    <nav class="tiles tiles-2 home-row" aria-label="Recherche et test">
+      <div class="search-col">
+      <div class="search" role="search">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2.4"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        <input id="q" type="search" placeholder="Chercher un mot…" aria-label="Chercher un mot en arabe ou en français" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+      <div class="results" id="results" hidden></div>
+      </div>
       <button class="tile t-test" data-go="test"><svg viewBox="0 0 40 40" fill="none" aria-hidden="true"><circle cx="20" cy="20" r="14" fill="currentColor"/><path d="m13.5 20.5 4.5 4.5 8.5-9" stroke="#fffaf4" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span><b>Tester</b><small id="sub-test"></small></span></button>
     </nav>
 
@@ -2237,9 +2260,14 @@ function merge(s){
   const known=prefs.known||[1,2,3];
   for(const ch of CHAPTERS)if(!known.includes(ch)&&!prefs.chapters.includes(ch))prefs.chapters.push(ch);
   prefs.chapters.sort((a,b)=>a-b);prefs.known=CHAPTERS.slice();
-  return {cards:s.cards||{},learned:s.learned||{},acq:s.acq||{},prefs,days:s.days||{},updatedAt:s.updatedAt||0}}
+  return {cards:s.cards||{},learned:s.learned||{},acq:s.acq||{},hist:s.hist||{},prefs,days:s.days||{},updatedAt:s.updatedAt||0}}
+function recordHist(){
+  state.hist=state.hist||{};
+  const v=WORDS.filter(isAcquired).length;state.hist[dayKey()]=v;
+}
 function save(){
   state.updatedAt=Date.now();
+  try{recordHist()}catch(e){}
   try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}
   if(docRef){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{
     docRef.set({json:JSON.stringify(state),updatedAt:state.updatedAt})
@@ -2273,6 +2301,7 @@ function isStudied(w){return (state.learned||{})[w.id]||getCard(cardKey(w,"ar"))
 function activeWords(){
   if(scope.type==="chapter")return WORDS.filter(w=>w.ch===scope.ch);
   if(scope.type==="studied")return WORDS.filter(isStudied);
+  if(scope.type==="acquired")return WORDS.filter(isAcquired);
   return WORDS;
 }
 function dirs(){return state.prefs.dir==="mix"?["ar","fr"]:[state.prefs.dir]}
@@ -2341,14 +2370,36 @@ function isAcquired(w){
   return !!(state.learned||{})[w.id];
 }
 function wordState(w){const l=wordLevel(w);if(l>=3)return "known";if(getCard(cardKey(w,"ar")).seen||getCard(cardKey(w,"fr")).seen)return "learning";return "new"}
+function curveSVG(){
+  const h=state.hist||{}, days=Object.keys(h).sort();
+  if(days.length<2)return `<div class="empty">La courbe se remplit jour après jour : reviens demain pour voir ta progression.</div>`;
+  const t=d=>new Date(d+"T12:00:00").getTime();
+  const t0=t(days[0]),t1=t(days[days.length-1]),span=Math.max(DAY,t1-t0);
+  const vals=days.map(d=>h[d]), vmax=Math.max(10,...vals), vmin=0;
+  const W=300,H=110,L=34,Rr=8,T=8,B=22;
+  const X=d=>L+(t(d)-t0)/span*(W-L-Rr), Y=v=>T+(1-(v-vmin)/(vmax-vmin))*(H-T-B);
+  const step=Math.pow(10,Math.floor(Math.log10(vmax)))*(vmax/Math.pow(10,Math.floor(Math.log10(vmax)))>5?2:1)/1;
+  const nice=Math.ceil(vmax/4/step)*step||1, ticks=[];for(let v=0;v<=vmax;v+=nice)ticks.push(v);
+  const pts=days.map(d=>`${X(d).toFixed(1)},${Y(h[d]).toFixed(1)}`).join(" ");
+  const area=`${L},${Y(0)} ${pts} ${X(days[days.length-1]).toFixed(1)},${Y(0)}`;
+  const fmt=d=>{const x=new Date(d+"T12:00:00");return x.getDate()+"/"+(x.getMonth()+1)};
+  const last=days[days.length-1];
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Mots acquis au fil des jours">
+    ${ticks.map(v=>`<line x1="${L}" x2="${W-Rr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${Y(v)+3.5}" text-anchor="end" font-size="10" font-weight="700" fill="var(--muted)">${v}</text>`).join("")}
+    <polygon points="${area}" fill="var(--sage-soft)"/>
+    <polyline points="${pts}" fill="none" stroke="var(--sage)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${X(last)}" cy="${Y(h[last])}" r="4.5" fill="var(--sage)" stroke="var(--surface)" stroke-width="2"/>
+    <text x="${L}" y="${H-5}" font-size="10" font-weight="700" fill="var(--muted)">${fmt(days[0])}</text>
+    <text x="${W-Rr}" y="${H-5}" text-anchor="end" font-size="10" font-weight="700" fill="var(--muted)">${fmt(last)}</text>
+  </svg>`;
+}
 function renderHeader(){
-  const n=WORDS.length, known=WORDS.filter(isAcquired).length, rest=n-known, now=Date.now();
-  const started=CHAPTERS.filter(ch=>WORDS.some(w=>w.ch===ch&&isStudied(w)));
-  const hasLeft=ch=>WORDS.some(w=>w.ch===ch&&!isAcquired(w)), last=started.length?Math.max(...started):0;
-  const todo=started.find(hasLeft)??CHAPTERS.find(ch=>ch>last&&hasLeft(ch))??CHAPTERS.find(hasLeft);
-  const todoLeft=todo?WORDS.filter(w=>w.ch===todo&&!isAcquired(w)).length:0;
+  try{recordHist()}catch(e){}
+  const n=WORDS.length, known=WORDS.filter(isAcquired).length, rest=n-known;
   const pct=Math.round(known/n*100);
   const R=50,C=2*Math.PI*R,k=known/n*C;
+  const h=state.hist||{}, days=Object.keys(h).sort();
+  const wk=days.length>1?known-(h[days.filter(d=>d<=dayKey(Date.now()-7*DAY)).pop()||days[0]]||0):0;
   document.getElementById("overview").innerHTML=`
     <div class="ring" role="img" aria-label="${pct} % des mots acquis">
       <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--line)" stroke-width="12"/>
@@ -2359,12 +2410,9 @@ function renderHeader(){
       <div class="ov-stat"><b>${known}</b><span><i style="background:var(--sage-bright)"></i>acquis</span></div>
       <div class="ov-stat"><b>${rest}</b><span><i style="background:var(--line)"></i>pas encore acquis</span></div>
       <div class="ov-stat" style="grid-column:1/-1"><span>sur ${n} mots dans le carnet</span></div>
-      ${todo?`<button class="today" id="todayBtn"><span>À travailler : chapitre ${todo} · ${todoLeft} mot${todoLeft>1?"s":""} pas encore acquis</span><span>Ouvrir ›</span></button>`:`<div class="today"><span>Tous les mots sont acquis, bravo !</span></div>`}
-    </div>`;
-  const studied=WORDS.filter(isStudied).length, unseen=n-studied;
-  document.getElementById("sub-cards").textContent=rest?`Tous les mots · ${rest} pas encore acquis`:"Tous les mots";
-  const tb=document.getElementById("todayBtn");if(tb)tb.onclick=()=>openChapter(todo);
-  document.getElementById("sub-test").textContent=studied?`Quiz sur les ${studied} mots déjà vus`:"Commence par un chapitre";
+    </div>
+    <div class="curve"><div class="ttl"><span></span><span>${days.length>1?(wk>=0?"+":"")+wk+" sur 7 jours":""}</span></div>${curveSVG()}</div>`;
+  document.getElementById("sub-test").textContent=known?`Quiz sur tes ${known} mots acquis`:"Aucun mot acquis pour l'instant";
   const grid=document.getElementById("chgrid");grid.innerHTML="";
   for(const ch of CHAPTERS){
     const ws=WORDS.filter(w=>w.ch===ch),kn=ws.filter(isAcquired).length;
@@ -2380,13 +2428,13 @@ const TITLES={cards:"Cartes",learn:"Apprendre",test:"Tester"};
 function go(target,sc){
   clearTimeout(advanceTimer);stopMic();
   if(TITLES[target]){
-    scope=sc||(target==="cards"?{type:"all"}:{type:"studied"});
+    scope=sc||(target==="cards"?{type:"all"}:target==="test"?{type:"acquired"}:{type:"studied"});
     const key=scopeKey();
     if(learn&&learn.key!==key)learn=null;
     if(test&&test.key!==key)test=null;
     backView=scope.type==="chapter"?"chapter":"home";
     state.prefs.mode=target;save();view="study";
-    const sub=scope.type==="chapter"?"Chapitre "+scope.ch:scope.type==="studied"?"Mots déjà vus":"Tous les mots";
+    const sub=scope.type==="chapter"?"Chapitre "+scope.ch:scope.type==="studied"?"Mots déjà vus":scope.type==="acquired"?"Mots acquis":"Tous les mots";
     document.getElementById("studyTitle").innerHTML=`${TITLES[target]}<small>${sub}</small>`;
     document.getElementById("studyBack").textContent=backView==="chapter"?"‹ Chapitre":"‹ Accueil";
     if(target==="cards")buildQueue();
@@ -2652,7 +2700,7 @@ function renderTest(el){
 function renderStudy(){
   const el=document.getElementById("study"), mode=state.prefs.mode||"cards";
   if(!activeWords().length){
-    el.innerHTML=`<div class="card panel done"><div class="q-fr">Tu n'as encore vu aucun mot.</div><p>Ouvre un chapitre depuis l'accueil et commence par Cartes ou Apprendre. Les mots que tu as vus apparaîtront ensuite ici.</p><button class="btn b-main" id="toHome">Choisir un chapitre</button></div>`;
+    el.innerHTML=`<div class="card panel done"><div class="q-fr">${scope.type==="acquired"?"Aucun mot acquis pour l'instant.":"Tu n'as encore vu aucun mot."}</div><p>Ouvre un chapitre depuis l'accueil et commence par Cartes ou Apprendre. ${scope.type==="acquired"?"Les mots que tu as acquis":"Les mots que tu as vus"} apparaîtront ensuite ici.</p><button class="btn b-main" id="toHome">Choisir un chapitre</button></div>`;
     document.getElementById("toHome").onclick=()=>go("home");return;
   }
   if(mode==="learn")return renderLearn(el);
@@ -2731,6 +2779,25 @@ function renderAll(){renderControls();renderHeader();if(view==="study")renderStu
 document.querySelectorAll("[data-dir]").forEach(b=>b.onclick=()=>{state.prefs.dir=b.dataset.dir;learn=null;if(test&&!test.done&&test.idx===0)test=null;save();buildQueue();renderAll()});
 document.getElementById("harakat").onclick=()=>{state.prefs.harakat=!state.prefs.harakat;save();renderAll()};
 document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
+function runSearch(){
+  const raw=document.getElementById("q").value.trim(), box=document.getElementById("results");
+  if(!raw){box.hidden=true;box.innerHTML="";return}
+  const isAr=/[\u0600-\u06FF]/.test(raw);
+  const qa=isAr?normAr(raw):"", qf=isAr?"":raw.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  const hits=[];
+  for(const w of WORDS){
+    let score=-1;
+    if(isAr){const a=normAr(w.ar);const parts=w.ar.split(/[\/\-]/).map(normAr);if(parts.includes(qa))score=0;else if(a.startsWith(qa))score=1;else if(a.includes(qa))score=2}
+    else{const f=w.fr.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");const words=f.split(/[^a-z']+/);if(words.includes(qf))score=0;else if(f.startsWith(qf))score=1;else if(f.includes(qf))score=2}
+    if(score>=0)hits.push([score,w]);
+  }
+  hits.sort((x,y)=>x[0]-y[0]||x[1].ch-y[1].ch);
+  box.hidden=false;
+  if(!hits.length){box.innerHTML=`<div class="none">Aucun mot trouvé pour « ${esc(raw)} ».</div>`;return}
+  box.innerHTML=hits.slice(0,30).map(([,w],i)=>{const ok=isAcquired(w);return `<button class="res" id="res-${i}" data-ch="${w.ch}"><span class="acq ${ok?"on":""}" title="${ok?"Acquis":"Pas encore acquis"}">${ok?"✓":""}</span><span class="fr">${esc(w.fr)}<small>Chapitre ${w.ch}</small></span><span class="ar" lang="ar">${esc(arText(w.ar))}</span></button>`}).join("")+(hits.length>30?`<div class="none">${hits.length-30} autres résultats : précise ta recherche.</div>`:"");
+  box.querySelectorAll(".res").forEach(b=>b.onclick=()=>openChapter(+b.dataset.ch));
+}
+document.getElementById("q").addEventListener("input",runSearch);
 document.getElementById("studyBack").onclick=()=>go(backView);
 document.addEventListener("keydown",e=>{
   if(e.target.closest&&e.target.closest("input,textarea"))return;
